@@ -28,6 +28,60 @@ public class Puzzle {
         }
     }
 
+    // gets private array currentNode
+    public String[][] getCurrentNode() { return this.currentNode; }
+
+    // Finds and returns a tile location
+    public int[] getTileLoc(String[][] node, String id) {
+        int i = -1, j = -1;
+        int tempInt[] = new int[2];
+        for (int n = 0; n < size*size; n++) {
+            i = n / size;
+            j = n % size;
+            if (node[i][j].equals(id)) {
+                tempInt[0] = i;
+                tempInt[1] = j;
+            }
+        }
+        return tempInt;
+    }
+
+    // returns tile as an int
+    public int getTile(int i, int j) {
+        String tempString = this.currentNode[i][j];
+        if (tempString.equals(EMPTY)) { tempString = "0"; }
+        return Integer.parseInt(tempString);
+    }
+
+    // returns puzzle size
+    public int getSize() { return size; }
+
+    // Updates empty tile location for other methods
+    public void updateEmptyPos() {
+        int tempInt[] = getTileLoc(this.currentNode, EMPTY);
+        this.emptyPos[0] = tempInt[0];
+        this.emptyPos[1] = tempInt[1];
+    }
+
+    // finds manhattan distance of tiles from current node to goal node
+    public int getManhattan() {
+        int manhattan = 0;
+
+        int i, j, nextI, nextJ, tempTile;
+        for (int n = 0; n < size*size; n++) {
+            i = n / size;
+            j = n % size;
+            tempTile = getTile(i,j);
+            if (tempTile != 0 && tempTile != (i * size + j + 1) ) {
+                // only true if tile is non-zero and is not already in correct position
+                nextI = (tempTile - 1) / size;
+                nextJ = (tempTile - 1) % size;
+                manhattan += Math.abs(nextI - i) + Math.abs(nextJ - j);
+            }
+        }
+        return manhattan;
+    }
+
     // generates next node layer of solution tree
     public Collection<Puzzle> nextNodes() {
         if (nextNodes != null) { return nextNodes; }
@@ -48,6 +102,7 @@ public class Puzzle {
 
     // creates node for solution tree
     private void generateNode(int newCoord, String direction) {
+        System.out.println("Generating node");
         Puzzle node = new Puzzle(this.currentNode);
         int[] newPos = new int[2];
         if (direction.equals(HSWAP)) { newPos[0] = newCoord; newPos[1] = emptyPos[1]; } // set horizontal coordinates
@@ -58,75 +113,25 @@ public class Puzzle {
 
     // swaps two tiles with each other
     public void swapTiles(String[][] node, int[] firstTile, int[] secondTile) {
+        System.out.printf("Swapping positions [&d,&d],[%d,%d}\n", firstTile[0], firstTile[1], secondTile[0], secondTile[1]);
         String temp = node[firstTile[0]][firstTile[1]];
         node[firstTile[0]][firstTile[1]] = node[secondTile[0]][secondTile[1]];
         node[secondTile[0]][secondTile[1]] = temp;
         this.updateEmptyPos();
     }
 
-    // gets private array currentNode
-    public String[][] getCurrentNode() { return this.currentNode; }
-
-    // Finds and returns a tile location
-    public int[] getTileLoc(String[][] node, String id) {
-        int i = -1, j = -1;
-        int tempInt[] = new int[2];
-        for (int n = 0; n < size*size; n++) {
-            i = n / size;
-            j = n % size;
-            if (node[i][j].equals(id)) {
-                tempInt[0] = i;
-                tempInt[1] = j;
-            }
-        }
-        return tempInt;
-    }
-
-    // returns tile as a String (how it is saved)
-    public String getTileString(int i, int j) {
-        return currentNode[i][j];
-    }
-
-    // returns tile as an int
-    public int getTileInt(int i, int j) {
-        String tempString = this.currentNode[i][j];
-        if (tempString.equals(EMPTY)) { tempString = "0"; }
-        return Integer.parseInt(tempString);
-    }
-
-    // Updates empty tile location for other methods
-    public void updateEmptyPos() {
-        int tempInt[] = getTileLoc(this.currentNode, EMPTY);
-        this.emptyPos[0] = tempInt[0];
-        this.emptyPos[1] = tempInt[1];
-    }
-
-    // finds manhattan distance of tiles from current node to goal node
-    public int getManhattan() {
-        int manhattan = 0;
-
-        int i, j, nextI, nextJ, tempTile;
-        for (int n = 0; n < size*size; n++) {
-            i = n / size;
-            j = n % size;
-            tempTile = getTileInt(i,j);
-            if (tempTile != 0 && tempTile != (i * size + j + 1) ) {
-                // only true if tile is non-zero and is not already in correct position
-                nextI = (tempTile - 1) / size;
-                nextJ = (tempTile - 1) % size;
-                manhattan += Math.abs(nextI - i) + Math.abs(nextJ - j);
-            }
-        }
-        return manhattan;
-    }
-
-    // prints a nicely formatted puzzle
+    // prints a nicely formatted puzzle from provided 3x3 array
     public void printNode(String[][] node) {
         System.out.println("---------");
         for (int i = 0; i < 3; i++) {
             System.out.println("| " + node[i][0] + " " + node[i][1] + " " + node[i][2] + " |");
         }
         System.out.println("---------");
+    }
+
+    // prints current node
+    public void printCurrentNode() {
+        printNode(this.currentNode);
     }
 
     // checks if Puzzle is solved
@@ -150,13 +155,13 @@ public class Puzzle {
             for (int invIndex = index; invIndex < size*size; invIndex++) {
                 m = invIndex / size;
                 n = invIndex % size;
-                if (getTileInt(m,n) != 0 && getTileInt(m,n) < getTileInt(i,j)) {
+                if (getTile(m,n) != 0 && getTile(m,n) < getTile(i,j)) {
                     // is invertible
                     inversionCount++;
                 }
             }
         }
-        if (inversionCount % 2 != 0) { return false; } // even parity
-        return true;
+        if (inversionCount % 2 != 0) { return false; } // odd parity
+        return true; // even parity
     }
 }

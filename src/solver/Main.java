@@ -28,16 +28,27 @@ public class Main {
         readFile(getFileChoice(userScanner));
         for (int n = 0; n < numPuzzles; n++) {
             Puzzle activePuzzle = puzzleMap.get(n);
+            Solver solve = new Solver(activePuzzle);
             System.out.println("Puzzle #" + (n + 1) + " Initial State");
-            activePuzzle.printNode(activePuzzle.getCurrentNode());;
+            activePuzzle.printNode(activePuzzle.getCurrentNode());
+            System.out.println("Manhattan distance: " + activePuzzle.getManhattan());
             if (!activePuzzle.isSolvable()) {
                 System.out.println("This puzzle has no solution.");
             }
             else {
+                double start = System.currentTimeMillis();
+                int loopCount = 0;
                 while (!activePuzzle.isSolved()) {
-                    System.out.println("Manhattan distance: " + activePuzzle.getManhattan());
-                    System.out.println("Search depth      : " + activePuzzle.);
+                    loopCount++;
+                    solve.nextSolution().printCurrentNode();
+                    if (loopCount == 100) {
+                        System.out.println("100 loops... press b to break.");
+                        if (userScanner.nextLine() == "b") { break; }
+                    }
                 }
+                System.out.println("Solved!");
+                System.out.println("Time to solve  : " + (System.currentTimeMillis() - start / 1000));
+                System.out.println("Number of steps: " + solve.searchDepth());
             }
 
             if (n < numPuzzles - 1) {
